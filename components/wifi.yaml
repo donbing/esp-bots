@@ -1,0 +1,11 @@
+#
+# https://esphome.io/components/wifi.html
+#
+wifi:
+  ssid: ${wifi_ssid}
+  password: ${wifi_password}
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "${esp_device_name} Fallback Hotspot"
+    password: "${fallback_ap_pass}"
