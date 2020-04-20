@@ -1,0 +1,10 @@
+# esphome https://esphome.io/components/esphome.html
+esphome:
+  name: "${esp_device_name}"
+  platform: "${esp_platform}"
+  board: "${esp_board}"
+captive_portal:
+logger:
+api:
+ota:
+  password: "${esp_ota_pass}"  
