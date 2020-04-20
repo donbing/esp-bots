@@ -1,0 +1,104 @@
+# the little 32 pixel tall 6106 uses I2C to talk to the esp
+i2c:
+  sda: D1
+  scl: D2
+  frequency: 200kHz
+
+# gotta have a font to display text!
+font:
+  - file: 'AlexandriaFLF.ttf'
+    id: font_alex
+    size: 20
+
+# images used for display
+image:
+  - file: "protobot_face_neutral.png"
+    id: neutral
+  - file: "protobot_face_lookright.png"
+    id: right
+  - file: "protobot_face_lookleft.png"
+    id: left
+  - file: "protobot_face_sheepish.png"
+    id: sheepish
+  - file: "protobot_face_cry.png"
+    id: cry
+  - file: "protobot_face_sleepy.png"
+    id: sleepy
+  - file: "protobot_face_happy.png"
+    id: happy
+  - file: "protobot_face_cheesy.png"
+    id: cheesy
+  - file: "smile_00.png"
+    id: smile01
+  - file: "smile_01.png"
+    id: smile02
+  - file: "smile_02.png"
+    id: smile03
+
+# display element
+display:
+  - platform: ssd1306_i2c
+    id: face_display
+    model: "SSD1306 128x32"
+    address: 0x3C
+    pages:
+      - id: neutralpage
+        lambda: |-
+          it.image(0, 0, id(neutral));
+      - id: eyesrightpage
+        lambda: |-
+          it.image(0, 0, id(right));
+      - id: eyesleftpage
+        lambda: |-
+          it.image(0, 0, id(left));
+      - id: sheepishpage
+        lambda: |-
+          it.image(0, 0, id(sheepish));
+      - id: crypage
+        lambda: |-
+          it.image(0, 0, id(cry));
+      - id: sleepypage
+        lambda: |-
+          it.image(0, 0, id(sleepy));
+      - id: happypage
+        lambda: |-
+          it.image(0, 0, id(happy));
+      - id: cheesypage
+        lambda: |-
+          it.image(0, 0, id(cheesy));
+      - id: smilepage
+        lambda: |-
+          it.image(0, 0, id(smile01));
+      - id: smileypage
+        lambda: |-
+          it.image(0, 0, id(smile02));
+      - id: smilerpage
+        lambda: |-
+          it.image(0, 0, id(smile03));
+      - id: textpage
+        lambda: |-
+          it.printf(64, 0, id(font_alex), TextAlign::TOP_CENTER, id(botbot_message).state.c_str());
+      - id: debugpage
+        lambda: |-
+          it.printf(64, 0, id(font_alex), TextAlign::TOP_CENTER, id(botbot_persona).state.c_str());
+          it.printf(64, 16, id(font_alex), TextAlign::TOP_CENTER, id(botbot_mood).state.c_str());
+
+script:
+  - id: act_surprised
+    then:
+      - logger.log: "loud noises scare me!" 
+    # surprised animation
+      - display.page.show: happypage
+      - component.update: face_display
+      - delay: 0.6s
+      - display.page.show: neutralpage
+      - component.update: face_display
+      - delay: 0.2s
+      - display.page.show: eyesrightpage
+      - component.update: face_display
+      - delay: 0.2s
+      - display.page.show: eyesleftpage
+      - component.update: face_display
+      - delay: 0.3s
+      - display.page.show: neutralpage
+      - component.update: face_display
