@@ -1,0 +1,126 @@
+substitutions:
+  esp_device_name: "botbot"
+  esp_platform: ESP8266
+  esp_board: nodemcu
+  esp_ota_pass:  "otaPass"  
+  friendly_name: "botbot"
+  wifi_ssid: "wifi_ssid"
+  wifi_password: "wifi_pass"
+
+# wifi network access
+<<: !include components/wifi.yaml
+# esphome api
+<<: !include components/esphome.yaml
+# nodeMCU onboard LEDs
+<<: !include components/esp8266_boardLEDs.yaml
+# display
+<<: !include components/ssd1306_32.yaml
+
+text_sensor:
+  # mood
+  - platform: homeassistant
+    name: "${esp_device_name} - Mood"
+    id: botbot_mood
+    entity_id: input_select.botbot_mood
+    on_value:
+      - lambda: 'id(botbot_persona).publish_state("moody");'
+  # text message
+  - platform: homeassistant
+    name: "${esp_device_name} - Message"
+    id: botbot_message
+    entity_id: input_text.botbot_message
+  # weather
+  - platform: homeassistant
+    name: "${esp_device_name} - weather"
+    id: botbot_weather
+    entity_id: weather.home
+  # persona (weather mood / user mood / display messages)
+  - platform: homeassistant
+    name: "${esp_device_name} - persona"
+    id: botbot_persona
+    entity_id: input_select.botbot_persona
+
+# sound sensor
+binary_sensor:
+  - platform: gpio
+    pin: GPIO14
+    name: "Sound level"
+    filters:
+      - delayed_off: 0.3s
+    on_press: 
+      then:
+        - script.execute: act_surprised
+
+interval:
+  - interval: 5s
+    then:
+      - display.page.show: !lambda |-
+          if (id(botbot_persona).state == "weather") {
+            if (id(botbot_weather).state == "clear-night") {
+              return sleepypage;
+            } else if (id(botbot_weather).state == "cloudy") {
+              return neutralpage;
+            } else if (id(botbot_weather).state == "fog") {
+              return neutralpage;
+            } else if (id(botbot_weather).state == "hail") {
+              return crypage;
+            } else if (id(botbot_weather).state == "lightning") {
+              return crypage;
+            } else if (id(botbot_weather).state == "lightning-rainy") {
+              return crypage;
+            } else if (id(botbot_weather).state == "partlycloudy") {
+              return cheesypage;
+            } else if (id(botbot_weather).state == "pouring") {
+              return sheepishpage;
+            } else if (id(botbot_weather).state == "rainy") {
+              return sleepypage;
+            } else if (id(botbot_weather).state == "snowy") {
+              return happypage;
+            } else if (id(botbot_weather).state == "snowy-rainy") {
+              return neutralpage;
+            } else if (id(botbot_weather).state == "sunny") {
+              return happypage;
+            } else if (id(botbot_weather).state == "windy") {
+              return sheepishpage;
+            } else if (id(botbot_weather).state == "windy-variant") {
+              return sheepishpage;
+            } else if (id(botbot_weather).state == "exceptional") {
+              return cheesypage;
+            } 
+          } 
+          else if (id(botbot_persona).state == "moody") {
+            if (id(botbot_mood).state == "neutral") {
+              return neutralpage;
+            }
+            else if (id(botbot_mood).state == "lookright") {
+              return eyesrightpage;
+            }
+            else if (id(botbot_mood).state == "lookleft") {
+              return eyesleftpage;
+            }
+            else if (id(botbot_mood).state == "sheepish") {
+              return sheepishpage;
+            }
+            else if (id(botbot_mood).state == "sad") {
+              return crypage;
+            }
+            else if (id(botbot_mood).state == "sleepy") {
+              return sleepypage;
+            }
+            else if (id(botbot_mood).state == "happy") {
+              return happypage;
+            }
+            else if (id(botbot_mood).state == "cheesy") {
+              return cheesypage;
+            }
+            else {
+              return neutralpage;
+            }
+          }
+          else if (id(botbot_persona).state == "text") {
+            return textpage;
+          }
+          else {
+            return debugpage;
+          }
+      - component.update: face_display
