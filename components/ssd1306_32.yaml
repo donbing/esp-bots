@@ -12,27 +12,27 @@ font:
 
 # images used for display
 image:
-  - file: "protobot_face_neutral.png"
+  - file: "images/protobot_face_neutral.png"
     id: neutral
-  - file: "protobot_face_lookright.png"
+  - file: "images/protobot_face_lookright.png"
     id: right
-  - file: "protobot_face_lookleft.png"
+  - file: "images/protobot_face_lookleft.png"
     id: left
-  - file: "protobot_face_sheepish.png"
+  - file: "images/protobot_face_sheepish.png"
     id: sheepish
-  - file: "protobot_face_cry.png"
+  - file: "images/protobot_face_cry.png"
     id: cry
-  - file: "protobot_face_sleepy.png"
+  - file: "images/protobot_face_sleepy.png"
     id: sleepy
-  - file: "protobot_face_happy.png"
+  - file: "images/protobot_face_happy.png"
     id: happy
-  - file: "protobot_face_cheesy.png"
+  - file: "images/protobot_face_cheesy.png"
     id: cheesy
-  - file: "smile_00.png"
+  - file: "images/smile_00.png"
     id: smile01
-  - file: "smile_01.png"
+  - file: "images/smile_01.png"
     id: smile02
-  - file: "smile_02.png"
+  - file: "images/smile_02.png"
     id: smile03
 
 # display element
