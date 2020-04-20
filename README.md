@@ -5,6 +5,7 @@
 
 ## bot-bot, the friendly robot fire-hazard
 
+![photo of botbot](images/botbot.jpg "Botbot")
 - has multiple personalities
   - weather-dependant
   - user set message
