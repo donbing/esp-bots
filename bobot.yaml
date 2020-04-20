@@ -1,0 +1,189 @@
+esphome:
+  name: bobot
+  platform: ESP32
+  board: nodemcu-32s
+
+wifi:
+  ssid: "NETGEAR85"
+  password: "password"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Brobot Fallback Hotspot"
+    password: "password"
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: "password"
+
+ota:
+  password: "password"
+
+
+globals:
+  - id: all_moods
+    type: String[2]
+    restore_value: no
+    initial_value: '{"1","2"}'
+  - id: eyeTarget
+    type: std::pair<int, int>
+    restore_value: no
+    initial_value: '{64,32}'
+
+switch:
+    - platform: template
+      name: "Look down"
+      turn_on_action:
+        - lambda: 'id(eyeTarget) = { 64, 42 };'
+    - platform: template
+      name: "Look up"
+      turn_on_action:
+        - lambda: 'id(eyeTarget) = { 64, 22 };'
+    - platform: template
+      name: "Look left"
+      turn_on_action:
+        - lambda: 'id(eyeTarget) = { 54, 32 };'
+    - platform: template
+      name: "Look right"
+      turn_on_action:
+        - lambda: 'id(eyeTarget) = { 74, 32 };'
+    - platform: template
+      name: "Look ahead"
+      turn_on_action:
+        - lambda: 'id(eyeTarget) = { 64, 32 };'
+
+sensor:
+  # eye openness
+  - platform: homeassistant
+    name: "brobot - eyeopenness"
+    id: bobot_eyeopenness
+    entity_id: input_number.bobot_eye_openness
+  # pupil radius
+  - platform: homeassistant
+    name: "brobot - pupil radius"
+    id: bobot_pupilradius
+    entity_id: input_number.bobot_pupil_radius
+  # eyeball radius
+  - platform: homeassistant
+    name: "brobot - eyeball radius"
+    id: bobot_eyeballradius
+    entity_id: input_number.bobot_eyeball_radius
+
+
+i2c:
+  - id: eye_bus
+    sda: GPIO21
+    scl: GPIO22
+    frequency: 400kHz
+  - id: mouth_bus
+    sda: GPIO19
+    scl: GPIO23
+    frequency: 400kHz
+  
+display:
+  - platform: ssd1306_i2c
+    id: left_eye_display
+    model: "SSD1306 128x64"
+    update_interval: 0.1s
+    address: 0x3D
+    i2c_id: eye_bus
+    lambda: |-
+      static std::pair<int, int> pupilpos = { it.get_width() / 2, it.get_height() / 2 };
+      static std::pair<int, int> eyeballpos = { it.get_width() / 2, it.get_height() / 2 };
+      
+      
+      auto eyelidOpenness = id(bobot_eyeopenness).state;
+      auto eyeRad = id(bobot_eyeballradius).state;
+      auto pupRad = id(bobot_pupilradius).state;
+      ESP_LOGD("main", "The value of sensor is: %f %f", eyeRad,pupRad );
+      int eyeballradius = 30;
+      int pupilradius = 15;
+      if(!isnan(eyeRad) && eyeRad != 0){
+        eyeballradius = round(eyeRad);
+      }
+      if(!isnan(pupRad) && pupRad != 0){
+        pupilradius = round(pupRad);
+      }
+      
+      auto bmeye = eyeballpos.second + eyeballradius;
+      auto bmpupil = pupilpos.second + pupilradius;
+      auto bmheight = (bmeye - bmpupil) / eyelidOpenness;
+      auto bottomeyelidtopy = bmeye - bmheight;
+
+      
+      auto tpeye = eyeballpos.second - eyeballradius; 
+      auto tppupil = pupilpos.second - pupilradius; 
+      auto tpheight = (tppupil - tpeye) / eyelidOpenness; 
+      auto topeyelidbottom = tpeye - tpheight; 
+
+      if(pupilpos != id(eyeTarget)){
+        auto distx = pupilpos.first - id(eyeTarget).first;
+        auto disty = pupilpos.second - id(eyeTarget).second;
+        if(distx != 0){
+          pupilpos =  { pupilpos.first  - round(distx / 2.0),  pupilpos.second };
+        }
+        if(disty != 0){
+          pupilpos =  { pupilpos.first,  pupilpos.second - round(disty / 2.0) };
+        }
+      }
+      it.filled_circle(eyeballpos.first, eyeballpos.second, eyeballradius); // eyeball
+      it.filled_circle(pupilpos.first, pupilpos.second, pupilradius, COLOR_OFF); /* pupil */
+      it.filled_rectangle(eyeballpos.first - eyeballradius, eyeballpos.second - eyeballradius, eyeballradius * 2 + 1, tpheight, COLOR_OFF); //top eyelid
+      it.filled_rectangle(eyeballpos.first - eyeballradius, bottomeyelidtopy, eyeballradius * 2 + 1, eyeballradius + 21, COLOR_OFF); //btm eyelid
+      
+  - platform: ssd1306_i2c
+    id: right_eye_display
+    model: "SSD1306 128x64"
+    address: 0x3C
+    update_interval: 0.1s
+    i2c_id: eye_bus
+    lambda: |-
+      static std::pair<int, int> pupilpos = { it.get_width() / 2, it.get_height() / 2 };
+      static std::pair<int, int> eyeballpos = { it.get_width() / 2, it.get_height() / 2 };
+      
+      
+      auto eyelidOpenness = id(bobot_eyeopenness).state;
+      auto eyeRad = id(bobot_eyeballradius).state;
+      auto pupRad = id(bobot_pupilradius).state;
+      ESP_LOGD("main", "The value of sensor is: %f %f", eyeRad,pupRad );
+      int eyeballradius = 30;
+      int pupilradius = 15;
+      if(!isnan(eyeRad) && eyeRad != 0){
+        eyeballradius = round(eyeRad);
+      }
+      if(!isnan(pupRad) && pupRad != 0){
+        pupilradius = round(pupRad);
+      }
+      
+      auto bmeye = eyeballpos.second + eyeballradius;
+      auto bmpupil = pupilpos.second + pupilradius;
+      auto bmheight = (bmeye - bmpupil) / eyelidOpenness;
+      auto bottomeyelidtopy = bmeye - bmheight;
+
+      
+      auto tpeye = eyeballpos.second - eyeballradius; 
+      auto tppupil = pupilpos.second - pupilradius; 
+      auto tpheight = (tppupil - tpeye) / eyelidOpenness; 
+      auto topeyelidbottom = tpeye - tpheight; 
+
+      if(pupilpos != id(eyeTarget)){
+        auto distx = pupilpos.first - id(eyeTarget).first;
+        auto disty = pupilpos.second - id(eyeTarget).second;
+        if(distx != 0){
+          pupilpos =  { pupilpos.first  - round(distx / 2.0),  pupilpos.second };
+        }
+        if(disty != 0){
+          pupilpos =  { pupilpos.first,  pupilpos.second - round(disty / 2.0) };
+        }
+      }
+      it.filled_circle(eyeballpos.first, eyeballpos.second, eyeballradius); // eyeball
+      it.filled_circle(pupilpos.first, pupilpos.second, pupilradius, COLOR_OFF); /* pupil */
+      it.filled_rectangle(eyeballpos.first - eyeballradius, eyeballpos.second - eyeballradius, eyeballradius * 2 + 1, tpheight, COLOR_OFF); //top eyelid
+      it.filled_rectangle(eyeballpos.first - eyeballradius, bottomeyelidtopy, eyeballradius * 2 + 1, eyeballradius + 21, COLOR_OFF); //btm eyelid
+      
+      
