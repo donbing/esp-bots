@@ -1,0 +1,2 @@
+platform: status
+name: ${esp_device_name}_status
