@@ -1,0 +1,27 @@
+
+# Take control of both board LEDs
+output:
+  - platform: esp8266_pwm
+    id: led1_output
+    pin:
+      number: D0
+      inverted: true
+  - platform: esp8266_pwm
+    id: led2_output
+    pin: 
+      number: D4
+      inverted: true
+      
+# reigster board leds as lights with some expermiental effects
+light:
+ - platform: monochromatic
+   name: "${esp_device_name} - LED1"
+   output: led1_output
+   id: board_led
+   restore_mode: ALWAYS_OFF
+ - platform: monochromatic
+   name: "${esp_device_name} - LED2"
+   output: led2_output
+   id: board_led2
+   restore_mode: ALWAYS_OFF
+   
