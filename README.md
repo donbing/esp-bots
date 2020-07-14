@@ -53,3 +53,14 @@ an automation in has to read from the weather.home state, botbot expects:
 ```
 
 
+to get these going in esphome add on for hass
+
+```sh
+git clone https://github.com/donbing/esp-bits.git /config/esphome/bots
+# link the esphome yaml files that are in use
+ ln -s ./bots/src/botbot.yaml botbot.yaml
+ ln -s ./bots/src/bobot.yaml bobot.yaml
+ ln -s ./bots/src/components/ components
+ ```
+
+ 
