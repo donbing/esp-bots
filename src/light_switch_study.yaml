@@ -1,0 +1,103 @@
+esphome:
+  name: light_switch_study
+  platform: ESP8266
+  board: esp01_1m
+
+wifi:
+  ssid: "NETGEAR85"
+  password: "smilingvase110"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Light Switch Study"
+    password: "WMnb7vkMDAZI"
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: "Ha1ryP00"
+
+ota:
+  password: "Ha1ryP00"
+
+
+status_led:
+  # https://esphome.io/components/status_led
+  pin:
+    number: GPIO5   # Red LED
+    inverted: True
+
+
+binary_sensor:
+  - platform: gpio
+    # https://esphome.io/components/binary_sensor/gpio.html
+    pin:
+      number: GPIO14
+      inverted: True
+    id: sensor
+    name: ${friendly_name} Sensor
+    filters:
+      - delayed_off: 50ms
+    on_press:
+      - switch.turn_off: white_led
+    on_release:
+      - switch.turn_on: white_led
+    internal: True
+
+  - platform: gpio
+    # https://esphome.io/components/binary_sensor/gpio.html
+    pin:
+      number: GPIO13
+      inverted: True
+    id: button
+    name: study light Button
+    on_press:
+      - switch.toggle: relay
+    internal: True
+
+
+switch:
+  - platform: gpio
+    # https://esphome.io/components/switch/gpio
+    id: white_led
+    name: study light White LED
+    pin:
+      number: GPIO4
+      inverted: True
+    restore_mode: RESTORE_DEFAULT_ON
+    internal: True
+
+  - platform: gpio
+    pin: GPIO12
+    id: relay
+    name: study light Relay
+    internal: True
+
+  # present the state of the switch in HA based on the sensor
+  - platform: template
+    # https://esphome.io/components/switch/template.html
+    name: study light
+    id: study_light
+    lambda: |-
+      if (id(sensor).state) {
+        return true;
+      } else {
+        return false;
+      }
+    # https://esphome.io/guides/automations.html#if-action
+    turn_on_action:
+        - if:
+            condition:
+              binary_sensor.is_off: sensor
+            then:
+              - switch.toggle: relay
+    turn_off_action:
+        - if:
+            condition:
+              binary_sensor.is_on: sensor
+            then:
+              - switch.toggle: relay
